@@ -1,0 +1,48 @@
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master ]
+
+
+env:
+  # TODO: Change variable to your image's name.
+  IMAGE_REPO: tchelovilar/parrot-test
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: Build image
+      run: docker build . --file Dockerfile --tag new_image
+
+    - name: Log into registry
+      run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u tchelovilar --password-stdin
+
+    - name: Push image
+      run: |
+        IMAGE_ID=$IMAGE_REPO:$GITHUB_RUN_NUMBER
+        
+        # Strip git ref prefix from version
+        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+        
+        # Strip "v" prefix from tag name
+        [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+        # Use Docker `latest` tag convention
+        [ "$VERSION" == "master" ] && VERSION=latest
+        echo IMAGE_ID=$IMAGE_ID
+        echo VERSION=$VERSION
+        docker tag new_image $IMAGE_ID:$VERSION
+        docker push $IMAGE_ID:$VERSION
