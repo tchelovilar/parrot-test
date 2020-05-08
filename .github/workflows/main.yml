@@ -26,7 +26,10 @@ jobs:
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           if [[ "${{ github.ref }}" == *"master" ]] ; then
             VERSION=$(git tag --points-at HEAD)
-            [[ "$TAG" == "" ]] && echo "Tag is required on master" && exit 1
+            if [[ "$TAG" == "" ]] ; then
+              echo "Tag is required on master"
+              exit 1
+            fi
           elif [[ "${{ github.ref }}" == *"release"* ]] ; then
             VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(\(release/\).*\),\1,' | sed -e "s;/;-;")-${GITHUB_SHA:0:6}
           else
