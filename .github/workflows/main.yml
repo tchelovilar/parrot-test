@@ -45,3 +45,17 @@ jobs:
 
         docker tag new_image $IMAGE_REPO:$VERSION
         docker push $IMAGE_REPO:$VERSION
+  
+  check_tag:
+    runs-on: ubuntu-latest
+
+    if: ${{ contains(github.ref, "release/") }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check is Tagged
+        run: |
+          TAG=$(git tag --points-at HEAD)
+          echo TAG=$TAG
+          [[ "$TAG" == "" ]] && exit 1
