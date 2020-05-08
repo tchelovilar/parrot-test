@@ -1,6 +1,8 @@
 name: PR_VALIDATE
 
 on:
+  push:
+    tags: [ .* ]
   pull_request:
     branches: [ master ]
 
