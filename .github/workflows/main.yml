@@ -1,61 +1,59 @@
 name: CI
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
     branches: [ master, develop, 'release/*' ]
 
 
 env:
-  # TODO: Change variable to your image's name.
   IMAGE_REPO: tchelovilar/parrot-test
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+
+  gathering_facts:
+
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    outputs:
+      version: ${{ steps.1.outputs.version }}
+
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      
+      - name: Define Version
+        id: 1
+        run: |
+          if [[ "${{ github.ref }}" == *"master" ]] ; then
+            VERSION=$(git tag --points-at HEAD)
+            [[ "$TAG" == "" ]] && echo "Tag is required on master" && exit 1
+          elif [[ "${{ github.ref }}" == *"release"* ]] ; then
+            VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(\(release/\).*\),\1,' | sed -e "s;/;-;")-${GITHUB_RUN_ID}
+          else
+            VERSION=dev-${GITHUB_RUN_ID}
+          fi
+          echo "::set-output name=version::$VERSION"
 
-    - name: Build image
-      run: docker build . --file Dockerfile --tag new_image
-
-    - name: Log into registry
-      run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u tchelovilar --password-stdin
-
-    - name: Push image
-      run: |
-        # Strip git ref prefix from version
-        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e "s;/;-;")
-        
-        # Strip "v" prefix from tag name
-        [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-        # Use Docker `latest` tag convention
-        [ "$VERSION" == "master" ] && VERSION=latest
-
-        echo IMAGE_REPO=$IMAGE_REPO
-        echo VERSION=$VERSION
-
-        docker tag new_image $IMAGE_REPO:$VERSION
-        docker push $IMAGE_REPO:$VERSION
-  
-  check_tag:
+  build:
     runs-on: ubuntu-latest
 
-    if: ${{ contains(github.ref, 'release') }}
+    needs: gathering_facts
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Check is Tagged
+      - name: Build Image
+        run: docker build . --file Dockerfile --tag new_image
+
+      - name: Log into registry
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u tchelovilar --password-stdin
+
+      - name: Push image
         run: |
-          TAG=$(git tag --points-at HEAD)
-          echo TAG=$TAG
-          [[ "$TAG" == "" ]] && exit 1
+          VERSION=${{ needs.gathering_facts.outputs.version }}
+          
+          echo IMAGE_REPO=$IMAGE_REPO
+          echo VERSION=$VERSION
+
+          docker tag new_image $IMAGE_REPO:$VERSION
+          docker push $IMAGE_REPO:$VERSION
+    
