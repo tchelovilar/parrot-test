@@ -1,0 +1,23 @@
+name: PR_VALIDATE
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  validate_tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Validate if is Tagged
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          TAG=$(git tag --points-at HEAD)
+          echo TAG: $TAG
+          if [[ "$TAG" == "" ]] ; then
+            echo "Tag is required to merge PR"
+            exit 1
+          fi
