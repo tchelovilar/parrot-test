@@ -2,6 +2,7 @@ name: PR_VALIDATE
 
 on:
   push:
+    branches: [ 'release/*' ]
     tags: [ .* ]
   pull_request:
     branches: [ master ]
