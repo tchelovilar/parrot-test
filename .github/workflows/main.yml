@@ -27,10 +27,11 @@ jobs:
             VERSION=$(git tag --points-at HEAD)
             [[ "$TAG" == "" ]] && echo "Tag is required on master" && exit 1
           elif [[ "${{ github.ref }}" == *"release"* ]] ; then
-            VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(\(release/\).*\),\1,' | sed -e "s;/;-;")-${GITHUB_RUN_ID}
+            VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(\(release/\).*\),\1,' | sed -e "s;/;-;")-${GITHUB_SHA:0:6}
           else
-            VERSION=dev-${GITHUB_RUN_ID}
+            VERSION=dev-${GITHUB_SHA:0:6}
           fi
+          echo VERSION: $VERSION
           echo "::set-output name=version::$VERSION"
 
   build:

@@ -9,8 +9,6 @@ jobs:
   validate_tag:
     runs-on: ubuntu-latest
 
-    if: ${{ contains(github.ref, 'release') }}
-
     steps:
       - uses: actions/checkout@v2
 
