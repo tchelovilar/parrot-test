@@ -5,20 +5,17 @@ on:
     branches: [ master ]
 
 jobs:
-  runs-on: ubuntu-latest
 
-  steps:
+  validate_tag:
+    runs-on: ubuntu-latest
 
-    validate_tag:
-      runs-on: ubuntu-latest
-  
-      if: ${{ contains(github.ref, 'release') }}
-  
-      steps:
-        - uses: actions/checkout@v2
-  
-        - name: Validate if is Tagged
-          run: |
-            TAG=$(git tag --points-at HEAD)
-            echo TAG=$TAG
-            [[ "$TAG" == "" ]] && exit 1
+    if: ${{ contains(github.ref, 'release') }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Validate if is Tagged
+        run: |
+          TAG=$(git tag --points-at HEAD)
+          echo TAG=$TAG
+          [[ "$TAG" == "" ]] && exit 1

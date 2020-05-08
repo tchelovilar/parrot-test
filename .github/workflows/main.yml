@@ -15,13 +15,13 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      version: ${{ steps.1.outputs.version }}
+      version: ${{ steps.define_version.outputs.version }}
 
     steps:
       - uses: actions/checkout@v2
       
       - name: Define Version
-        id: 1
+        id: define_version
         run: |
           if [[ "${{ github.ref }}" == *"master" ]] ; then
             VERSION=$(git tag --points-at HEAD)
