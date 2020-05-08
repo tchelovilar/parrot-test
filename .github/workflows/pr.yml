@@ -17,5 +17,8 @@ jobs:
         run: |
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           TAG=$(git tag --points-at HEAD)
-          echo TAG=$TAG
-          [[ $TAG == "" ]] && exit 1
+          echo TAG: $TAG
+          if [[ "$TAG" == "" ]] ; then
+            echo "Tag is required to merge PR"
+            exit 1
+          fi
