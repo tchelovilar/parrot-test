@@ -1,7 +1,7 @@
 name: PR_VALIDATE
 
 on:
-  create
+  create: {}
   pull_request:
     branches: [ master ]
 
