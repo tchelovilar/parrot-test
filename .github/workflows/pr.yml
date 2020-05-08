@@ -1,6 +1,7 @@
 name: PR_VALIDATE
 
 on:
+  create
   pull_request:
     branches: [ master ]
 
@@ -17,4 +18,4 @@ jobs:
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           TAG=$(git tag --points-at HEAD)
           echo TAG=$TAG
-          [[ "$TAG" == "" ]] && exit 1
+          [[ $TAG == "" ]] && exit 1

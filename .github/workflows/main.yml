@@ -23,6 +23,7 @@ jobs:
       - name: Define Version
         id: define_version
         run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           if [[ "${{ github.ref }}" == *"master" ]] ; then
             VERSION=$(git tag --points-at HEAD)
             [[ "$TAG" == "" ]] && echo "Tag is required on master" && exit 1
